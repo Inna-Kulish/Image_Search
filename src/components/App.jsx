@@ -24,44 +24,39 @@ function App() {
       setIsLoading(true);
       try {
         const result = await api.get(`?q=${searchRequest}&page=${page}`);
-  
+
         const { hits, totalHits } = result.data;
         const totalPages = Math.ceil(totalHits / 12);
-  
+
         setPhotos(prevPhotos => [...prevPhotos, ...hits]);
         setShowLoadMore(true);
-  
-        errorCustomize(hits.length, result.status, totalPages);
+
+        if (hits.length === 0) {
+          setShowLoadMore(false);
+          return toast.error(`No results found for ${searchRequest}`);
+        }
+
+        if (result.status === 404) {
+          setShowLoadMore(false);
+          return toast.error('Failed, try later');
+        }
+
+        if (totalPages <= page) {
+          setShowLoadMore(false);
+          return toast.error(
+            "We're sorry, but you've reached the end of search results."
+          );
+        }
       } catch (error) {
         console.log(error);
         return toast.error(`Failed, try later`);
       } finally {
         setIsLoading(false);
       }
-    }
+    };
 
-   fetchPhotos();
+    fetchPhotos();
   }, [searchRequest, page]);
-
-
-  function errorCustomize(arrayLength, statusCode, totalPages) {
-    if (arrayLength === 0) {
-      setShowLoadMore(false);
-      return toast.error(`No results found for ${searchRequest}`);
-    }
-
-    if (statusCode === 404) {
-      setShowLoadMore(false);
-      return toast.error('Failed, try later');
-    }
-
-    if (totalPages <= page) {
-      setShowLoadMore(false);
-      return toast.error(
-        "We're sorry, but you've reached the end of search results."
-      );
-    }
-  }
 
   const handleFormSubmit = query => {
     if (searchRequest === query) {
