@@ -20,28 +20,29 @@ function App() {
       return;
     }
 
-    fetchPhotos();
+    const fetchPhotos = async () => {
+      setIsLoading(true);
+      try {
+        const result = await api.get(`?q=${searchRequest}&page=${page}`);
+  
+        const { hits, totalHits } = result.data;
+        const totalPages = Math.ceil(totalHits / 12);
+  
+        setPhotos(prevPhotos => [...prevPhotos, ...hits]);
+        setShowLoadMore(true);
+  
+        errorCustomize(hits.length, result.status, totalPages);
+      } catch (error) {
+        console.log(error);
+        return toast.error(`Failed, try later`);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+   fetchPhotos();
   }, [searchRequest, page]);
 
-  async function fetchPhotos() {
-    setIsLoading(true);
-    try {
-      const result = await api.get(`?q=${searchRequest}&page=${page}`);
-
-      const { hits, totalHits } = result.data;
-      const totalPages = Math.ceil(totalHits / 12);
-
-      setPhotos(prevPhotos => [...prevPhotos, ...hits]);
-      setShowLoadMore(true);
-
-      errorCustomize(hits.length, result.status, totalPages);
-    } catch (error) {
-      console.log(error);
-      return toast.error(`Failed, try later`);
-    } finally {
-      setIsLoading(false);
-    }
-  }
 
   function errorCustomize(arrayLength, statusCode, totalPages) {
     if (arrayLength === 0) {
